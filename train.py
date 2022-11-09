@@ -25,7 +25,7 @@ NOTEBOOK_NUMBER = 'NOTEBOOK'
 NOTEBOOK_NAME =  SHUFFLES
 TEST = 0
 task_type='CPU'
-NJOBS=15
+NJOBS = 15
 
 SHUFFLES = int(SHUFFLES)
 # 0- only positives
@@ -107,9 +107,24 @@ def process_file(path):
     x_color = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
     x_gray = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
 
-
+    # to jest raczej bez sensu ale może się przydać
     features += [x_color.mean(), x_color.min(), x_color.max(), x_color.var(), x_color.sum()]
     features += [np.percentile(x_color, p) for p in np.arange(0.05, 1+0.05, 0.05)]
+
+    features += [x_color.mean(2).mean(), x_color.mean(2).min(), x_color.mean(2).max(), x_color.mean(2).var(), x_color.mean(2).sum()]
+    features += [np.percentile(x_color.mean(2), p) for p in np.arange(0.05, 1+0.05, 0.05)]
+
+    features += [x_color.sum(2).mean(), x_color.sum(2).min(), x_color.sum(2).max(), x_color.sum(2).var(), x_color.sum(2).sum()]
+    features += [np.percentile(x_color.sum(2), p) for p in np.arange(0.05, 1+0.05, 0.05)]
+
+    features += [x_color.sum(2).min(), x_color.min(2).min(), x_color.min(2).max(), x_color.min(2).var(), x_color.min(2).sum()]
+    features += [np.percentile(x_color.min(2), p) for p in np.arange(0.05, 1+0.05, 0.05)]
+
+    features += [x_color.sum(2).max(), x_color.max(2).min(), x_color.max(2).max(), x_color.max(2).var(), x_color.max(2).sum()]
+    features += [np.percentile(x_color.max(2), p) for p in np.arange(0.05, 1+0.05, 0.05)]
+
+    features += [x_color.var(2).max(), x_color.var(2).min(), x_color.var(2).max(), x_color.var(2).var(), x_color.var(2).sum()]
+    features += [np.percentile(x_color.var(2), p) for p in np.arange(0.05, 1+0.05, 0.05)]
      
     for color in range(3): # rgb
         
@@ -117,11 +132,13 @@ def process_file(path):
         
         color_hist = [np.count_nonzero(x2 == i) for i in range(256)]
         features += copy.deepcopy(color_hist)
+
         features += [x2.mean(), x2.min(), x2.max(), x2.var(), x2.sum()]
         features += [np.percentile(x2, p) for p in np.arange(0.05, 1+0.05, 0.05)]
 
         features += [np.mean(color_hist), np.min(color_hist), np.max(color_hist), np.var(color_hist), np.sum(color_hist)]
         features += [np.percentile(color_hist, p) for p in np.arange(0.05, 1+0.05, 0.05)]
+
 
 
 
@@ -134,27 +151,25 @@ def process_file(path):
     features += [np.percentile(x_gray, p) for p in np.arange(0.05, 1+0.05, 0.05)]
 
 
-
-
-
-    for INTERVAL_LEN in (32, 64):
+    for INTERVAL_LEN in (32, 64, 128):
 
         intervals = range(0,255,INTERVAL_LEN)
         all_comb =  product(intervals, intervals, intervals)
 
+        # dodawanie pól dla  kolorowego histogramu
         for a,b,c in all_comb:
             features += [np.sum(    (a < x_color[:, :, 0]) & (x_color[:, :, 0] < a+INTERVAL_LEN)
                               & (b < x_color[:, :, 1]) & (x_color[:, :, 1] < b+INTERVAL_LEN)
                               & (c < x_color[:, :, 2]) & (x_color[:, :, 2] < c+INTERVAL_LEN))]
 
+    for INTERVAL_LEN in (8, 16, 32, 64, 128):
+        # dodawanie pól dla  szarego histogramu
         for a in range(0,255, INTERVAL_LEN):
             features += [np.sum(    (a < x_gray) & (x_gray < a+INTERVAL_LEN) ) ]
 
-
-
     return features
 
-FEATURE_NUMBER = 1836
+FEATURE_NUMBER = 2019
 
 
 
@@ -201,19 +216,23 @@ X_test_features = np.concatenate((a, b, a-b, b-a, a+b, a/(b+EPS), b/(a+EPS)), ax
 
 # ### training a model
 
-model = CatBoostClassifier(n_estimators=5000, eval_metric="Accuracy", random_seed=int(fold), task_type=task_type,thread_count=NJOBS)
+model = CatBoostClassifier(n_estimators=5000, eval_metric="Accuracy", random_seed=int(fold), task_type=task_type, thread_count= NJOBS)
 
 
 # In[ ]:
 
 
-model.fit(X_train_features, y_train, eval_set=(X_dev_features, y_dev), early_stopping_rounds=1000, use_best_model=True)
+model.fit(X_train_features, y_train, eval_set=(X_dev_features, y_dev), early_stopping_rounds=500, use_best_model=True)
 
 print('best ntree:', model.get_best_iteration())
 print('best score:', model.get_best_score()) 
 
 
+# In[ ]:
 
+
+#with open(f'{NOTEBOOK_NAME}_{DATASET}.pickle','wb') as f:
+#    pickle.dump(model, f)
 
 
 # ## predictions
