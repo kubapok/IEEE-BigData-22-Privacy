@@ -7,15 +7,17 @@ import sklearn.model_selection
 import pickle
 import sys
 
-FOLDS=int(sys.argv[1])
+#DATADIR = '/mnt/gpu_data1/kubapok/bigdata2022challenge-encryption/bigdatachallange/BigDataCup2022'
+DATADIR=sys.argv[1]
+FOLDS=int(sys.argv[2])
 
 
 def run(DATASET, fold):
-    r = pd.read_csv('../../BigDataCup2022/submission_template.csv')
+    r = pd.read_csv(DATADIR + '/submission_template.csv')
 
-    p2_enc = sorted(Path(f'../../BigDataCup2022/{DATASET}/train/enc/').glob('*'))
+    p2_enc = sorted(Path(DATADIR + f'/{DATASET}/train/enc/').glob('*'))
 
-    p2_input = sorted(Path(f'../../BigDataCup2022/{DATASET}/train/input/').glob('*'))
+    p2_input = sorted(Path(DATADIR + f'/{DATASET}/train/input/').glob('*'))
 
     random.seed(fold)
 

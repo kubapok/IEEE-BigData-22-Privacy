@@ -1,15 +1,17 @@
 import pandas as pd
 from pathlib import Path
 import pickle
+import sys
 
-
+#DATADIR = '/mnt/gpu_data1/kubapok/bigdata2022challenge-encryption/bigdatachallange/BigDataCup2022'
+DATADIR = sys.argv[1]
 
 def run(DATASET):
-    r = pd.read_csv('../../BigDataCup2022/submission_template.csv')
+    r = pd.read_csv(DATADIR + '/submission_template.csv')
 
-    p2_enc = sorted(Path(f'../../BigDataCup2022/{DATASET}/test/enc/').glob('*'))
+    p2_enc = sorted(Path(DATADIR + f'/{DATASET}/test/enc/').glob('*'))
 
-    p2_input = sorted(Path(f'../../BigDataCup2022/{DATASET}/test/input/').glob('*'))
+    p2_input = sorted(Path(DATADIR + f'/{DATASET}/test/input/').glob('*'))
 
     r_d = {'enc_path': p2_enc, 'input_path':p2_input}
 
