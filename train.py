@@ -211,8 +211,8 @@ X_dev_features = np.concatenate((a, b, a-b, b-a, a+b, a/(b+EPS), b/(a+EPS)), axi
 a, b = process_dataset(X_test)
 X_test_features = np.concatenate((a, b, a-b, b-a, a+b, a/(b+EPS), b/(a+EPS)), axis=1)
 
-#with open(CACHE_NAME, 'wb') as f:
-#    pickle.dump(processed_cache, f)
+with open(CACHE_NAME, 'wb') as f:
+    pickle.dump(processed_cache, f)
 
 # ### training a model
 
